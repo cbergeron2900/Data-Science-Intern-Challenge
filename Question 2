@@ -1,0 +1,38 @@
+# QUESTION 2 #
+
+## part a: Orders Shipped by Speedy Express
+
+SELECT COUNT(*) FROM [Orders] WHERE ShipperID = (SELECT ShipperID FROM [Shippers] WHERE Shippers.ShipperName = "Speedy Express")
+
+There are 54 orders shipped by Speedy Express
+
+## part b: Last Name of Employee with Most Orders
+
+SELECT CustomerName 
+FROM [Customers] 
+WHERE CustomerID = (
+  SELECT CustomerID
+  FROM [Orders] 
+  GROUP BY CustomerID 
+  ORDER BY COUNT(CustomerID)
+  DESC 
+  LIMIT 1)
+
+The last name of the customer with the most orders shipped is "Handel". The actual output of this query code is "Ernst Handel". 
+
+## part c: Product Orderded moost from customers in Germany 
+
+SELECT ProductName 
+FROM [Products] 
+WHERE ProductID = (SELECT ProductID
+  FROM [OrderDetails] 
+  WHERE OrderID IN (
+	  SELECT OrderID FROM [Orders] WHERE CustomerID IN (SELECT CustomerID FROM [Customers] WHERE Country = "Germany"
+	)
+)
+  GROUP BY ProductID 
+  ORDER BY COUNT(ProductID) DESC 
+  LIMIT 1
+)
+  
+The most purchases product by customers in Germany is called Gorgonzola Telino. 
