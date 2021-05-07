@@ -1,0 +1,88 @@
+---
+title: "Shopify Data Science Intern Challenge (Question 1)"
+author: "Camille Bergeron"
+date: "5/2/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# libraries
+library(dplyr)
+library(tidyverse)
+library(knitr)
+```
+
+Link to github for these questions: [github](https://github.com/cbergeron2900/Data-Science-Intern-Challenge)
+
+# Question 1
+
+## First Look
+
+```{r}
+# looking at data 
+
+# loading the data
+orders <- read.csv("2019 Winter Data Science Intern Challenge Data Set - Sheet1.csv")
+
+# avg order value
+orders %>%
+  select(order_amount) %>%
+  summarise(n = mean(order_amount)) %>%
+  kable()
+
+# looking at potential outliers
+ggplot(orders) +
+  geom_boxplot(aes(x = order_amount)) +
+  labs(title = "Boxplot of Order Anount", x = "Order Amount")
+
+# extracting the outliers
+boxplot.stats(orders$order_amount)$out 
+
+orders[which(orders$order_amount == max(orders$order_amount)), ]
+```
+
+The largest outliers are all exactly $704000 by the same user at the same shop with the same payment method. The only difference is that the transactions take place on different days in March, but all at 4:00 am. 
+
+```{r}
+# new boxplot without the large order
+orders %>%
+  filter(user_id != 607) %>%
+  ggplot() +
+  geom_boxplot(aes(x = order_amount)) +
+  labs(title = "Boxplot of Order Anount", x = "Order Amount", subtitle = "With the large outlier removed")
+  # there are still lot of outliers so these clearly not it 
+
+# looking at this average 
+orders %>%
+  filter(user_id != 607) %>%
+  summarise(n = mean(order_amount)) %>%
+  kable()
+# this is much cheaper, so maybe this is better? 
+
+# separating the date and time 
+orders <- orders %>%
+  separate(created_at, c("date", "time"), " ") %>%
+  mutate(date = as.Date(date)) 
+
+# taking out the dates to see if they were closing out 
+orders %>%
+  filter(shop_id == 42) %>%
+  arrange(date) %>%
+  head() %>%
+  kable()
+
+```
+
+```{r}
+# this is the average amount spent on items 
+orders %>%
+  mutate(avg = order_amount / total_items) %>%
+  summarise(n = mean(avg)) %>%
+  kable()
+
+```
+
+**Another way to do analysis similar to the average order value (AOV) is by looking at the average value per item. This number is $387 per sneaker. **
+
